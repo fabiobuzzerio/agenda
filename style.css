@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;800&display=swap');
+
+body, div, a, p, span, h1 {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: none;
+		font-size: 18px;
+	font-family: 'Inter', sans-serif;
+	font-weight: 400;
+}
+
+body {
+	background: rgba(var(--bg));
+	color: rgba(var(--txt));
+	height: 100vh;
+  min-height: 100vh;
+	display: flex;
+	flex-flow: column nowrap;
+}
+
+::-moz-selection { /* firefox */
+  background: rgba(var(--txt), 0.4);
+}
+::selection {
+  background: rgba(var(--txt), 0.4);
+}
+
+main {
+	margin: 100px;
+	display: flex;
+	flex-flow: column nowrap;
+	flex-grow: 1;
+	align-items: center
+}
+
+h1 {
+	cursor: text;
+	font-size: 40px;
+	font-weight: 800;
+	width: 50vw;
+	max-width: 400px;
+	margin-bottom: 20px
+}
+
+h1[contenteditable="true"]:empty:before {
+  content: attr(placeholder);
+  color: rgba(var(--txt));
+}
+
+#list {
+	width: 50vw;
+	max-width: 400px;
+	line-height: 40px;
+}
+
+.task input {
+	cursor: pointer;
+}
+
+.task span {
+	cursor: text;
+}
+
+.task span[contenteditable="true"]:empty:before {
+  content: attr(placeholder);
+  color: rgba(var(--txt), 0.5);
+}
+
+.completed span {
+	color: rgba(var(--txt), 0.5);
+	text-decoration: line-through;
+}
+
+footer {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	align-content: center;
+	padding: 40px 50px;
+}
+
+footer ul {
+	display: flex;
+	flex-flow: row nowrap;
+	margin: 0;
+}
+
+footer ul li {
+	list-style: none;
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+}
+
+footer ul li:nth-child(2), footer ul li:nth-child(3) {
+	margin-left: 20px;
+}
+
+footer ul li svg {
+	width: 18px;
+	height: 18px;
+	fill: rgba(var(--txt), 0.5);
+}
+footer ul li svg:hover {
+	fill: rgba(var(--txt));
+}
+
+#info {
+	position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  display: none;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(var(--bg), 0.8);
+  z-index: 1;
+}
+
+#info.active {
+	display: flex;
+}
+
+#info > div {
+	width: 400px;
+  margin: auto;
+  padding: 30px;
+	border-radius: 5px;
+	display: flex;
+  flex-flow: column wrap;
+	box-shadow:  0px 0px 10px 0px rgba(var(--txt), 0.2);
+}
+
+.dark-mode #info > div {
+	background: rgba(var(--txt), 0.1);
+	box-shadow: none;
+}
+
+#info > div > p:nth-child(1), #info > div > p:nth-child(2), #info > div > p:nth-child(3) {
+	margin-bottom: 20px
+}
+
+#info > div > p > span {
+	color: rgba(var(--txt), 0.7)
+}
+
+@media only screen and (max-width: 800px) {
+	main {
+		margin: 50px;
+	}
+}
+
+:root {
+	--bg: 255, 255, 255;
+	--txt: 0, 0, 0;
+}
+.dark-mode {
+	--bg: 32, 32, 32;
+	--txt: 255, 255, 255;
+}
