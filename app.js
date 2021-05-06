@@ -55,7 +55,7 @@ window.addEventListener('keydown', e => {
 
 window.addEventListener('click', e => {
 	list = document.getElementById('list')
-	tasks = document.querySelectorAll('#list .task')
+	tasks = list.querySelectorAll('.task')
 	lastTask = tasks[tasks.length-1]
 	if (!lastTask.contains(e.target) && lastTask.querySelector('div > span').innerHTML == '' && lastTask !== tasks[0]) {
 		list.removeChild(lastTask)
