@@ -1,10 +1,10 @@
 // TO DO LIST
 function focusNextTask(task) {
-	task.parentNode.nextSibling.querySelector('span').focus()
+	task.nextSibling.querySelector('span').focus()
 }
 
 function focusPreviousTask(task) {
-	task.parentNode.previousSibling.querySelector('span').focus()
+	task.previousSibling.querySelector('span').focus()
 }
 
 function insertAfter(newNode, referenceNode) {
@@ -16,7 +16,7 @@ function createTask(prevTask) {
 	newTask.classList = 'task'
 	newTask.innerHTML = `
 		<input type="checkbox">
-		<span contenteditable="true" placeholder="Something to do"></span>
+		<span contenteditable="true" placeholder="Type something..."></span>
 	`
 	insertAfter(newTask, prevTask)
 	newTask.querySelector('span').focus()
@@ -27,31 +27,44 @@ window.addEventListener('keydown', e => {
 		e.preventDefault()
 	}
 	if (e.target.parentNode.classList == 'task') {
-		task = e.target
-		list = task.parentNode.parentNode
-		if (e.key == 'Backspace' && task.innerHTML == '' && task.parentNode !== list.querySelector('div > div')) {
+		span = e.target
+    task = span.parentNode
+		list = task.parentNode
+		if (e.key == 'Backspace' && span.innerHTML == '' && task !== list.querySelector('div > div')) {
 			focusPreviousTask(task)
-			list.removeChild(task.parentNode)
+			list.removeChild(span.parentNode)
 		}
-		if (e.key == 'Enter' && task.innerHTML !== '') {
-			createTask(task.parentNode)
+		if (e.key == 'Enter' && span.innerHTML !== '') {
+			createTask(task)
 		}
 		if (e.key == 'ArrowUp') {
 			focusPreviousTask(task)
 		}
 		if (e.ctrlKey && e.key == 'ArrowUp') {
-			list.insertBefore(task.parentNode, task.parentNode.previousSibling)
-			task.focus()
+			list.insertBefore(task, task.previousSibling)
+			span.focus()
 		}
 		if (e.key == 'ArrowDown') {
 			focusNextTask(task)
 		}
 		if (e.ctrlKey && e.key == 'ArrowDown') {
-			insertAfter(task.parentNode, task.parentNode.nextSibling)
-			task.focus()
+			insertAfter(task, task.nextSibling)
+			span.focus()
 		}
   }
 })
+
+let moveCompletedTasks
+
+if ('moveCompletedTasks' in localStorage) {
+  moveCompletedTasksCheckbox = document.querySelector('input[name="moveCompletedTasks"]')
+  if (localStorage.moveCompletedTasks == 'true') {
+    moveCompletedTasks = moveCompletedTasksCheckbox.checked = true
+     true
+  } else {
+    moveCompletedTasks = moveCompletedTasksCheckbox.checked = false
+  }
+}
 
 window.addEventListener('click', e => {
 	list = document.getElementById('list')
@@ -60,72 +73,96 @@ window.addEventListener('click', e => {
 	if (!lastTask.contains(e.target) && lastTask.querySelector('div > span').innerHTML == '' && lastTask !== tasks[0]) {
 		list.removeChild(lastTask)
   }
-	if (e.target.nodeName == 'INPUT') {
+	if (e.target.nodeName == 'INPUT' && e.target.parentNode.classList.contains('task')) {
+    checkbox = e.target
 		task = e.target.parentNode
 		span = task.querySelector('div > span')
-		if (e.target.checked) {
-			task.classList.add('completed')
+		if (checkbox.checked) {
+			task.classList.toggle('completed', true)
 			span.contentEditable = false
-			insertAfter(task, lastTask)
-		}
-		if (!e.target.checked) {
-			taskFirstCompleted = task.parentNode.querySelectorAll('div > .task.completed')[0]
-			task.classList.remove('completed')
+      if (moveCompletedTasks) insertAfter(task, lastTask)
+		} else {
+      taskFirstCompleted = task.parentNode.querySelectorAll('div > .task.completed')[0]
+			task.classList.toggle('completed', false)
 			span.contentEditable = true
-			list.insertBefore(task, taskFirstCompleted)
-		}
+      if (moveCompletedTasks) list.insertBefore(task, taskFirstCompleted)
+    }
 	}
 })
 
+/*
+let os
+if (navigator.appVersion.indexOf("Win") != -1) os = "Windows"
+if (navigator.appVersion.indexOf("Mac") != -1) os = "MacOS"
+if (navigator.appVersion.indexOf("X11") != -1) os = "UNIX"
+if (navigator.appVersion.indexOf("Linux") != -1) os = "Linux"
+*/
+
+// OPEN & CLOSE MODALS
+function activateModal(modal, active) {
+  modal.classList.toggle('active', active)
+}
+
+var info = document.getElementById('info')
+var infoToggle = document.getElementById('infoToggle')
+var settings = document.getElementById('settings')
+var settingsToggle = document.getElementById('settingsToggle')
+
+modals = [info, settings]
+modalsToggles = [infoToggle, settingsToggle]
+
+modalsToggles.forEach((toggle, i) => {
+  toggle.addEventListener('click', () => {
+    activateModal(modals[i], true)
+  })
+})
+
+window.addEventListener('click', e => {
+  modals.forEach(modal => {
+    if (e.target == modal && modal.classList.contains('active')) {
+  		activateModal(modal, false)
+  	}
+  })
+})
+
+// MOVE COMPLETED TASKS
+document.querySelector('input[name="moveCompletedTasks"]').addEventListener('change', e => {
+  if (e.target.checked) {
+    lastTask = tasks[tasks.length-1]
+    document.querySelectorAll('.completed').forEach(task => {
+      insertAfter(task, lastTask)
+      lastTask = task
+    })
+    moveCompletedTasks = true
+    localStorage.moveCompletedTasks = 'true'
+  } else {
+    moveCompletedTasks = false
+    localStorage.moveCompletedTasks = 'false'
+  }
+})
 
 // DARK OR LIGHT MODE
-const colorSchemeToggle = document.getElementById('colorSchemeToggle')
-const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)')
-const svgLight = document.getElementById('light')
-const svgDark = document.getElementById('dark')
-let currentTheme
-
 function toggleDarkMode(state) {
 	document.body.classList.toggle('dark-mode', state)
 }
 
-if (prefersDarkMode.matches) {
-	toggleDarkMode()
-	svgDark.style.display = 'none'
-	currentTheme = 'dark'
-} else {
-	svgLight.style.display = 'none'
-	currentTheme = 'light'
+if ('theme' in localStorage) {
+  if (localStorage.theme == 'dark' || (localStorage.theme == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) toggleDarkMode(true)
+  document.querySelector(`input[name="theme"][value="${localStorage.theme}"]`).checked = true
 }
 
-prefersDarkMode.addListener(e => {
-	toggleDarkMode()
+document.querySelectorAll('input[name="theme"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    if (radio.value == 'light' || (radio.value == 'auto' && !window.matchMedia('(prefers-color-scheme: dark)').matches)) toggleDarkMode(false)
+    if (radio.value == 'dark' || (radio.value == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) toggleDarkMode(true)
+    localStorage.setItem('theme', radio.value)
+  })
 })
 
-colorSchemeToggle.addEventListener('click', () => {
-	if (currentTheme == 'light') {
-		toggleDarkMode()
-		svgDark.style.display = 'none'
-		svgLight.style.display = 'inline'
-		currentTheme = 'dark'
-	} else {
-		toggleDarkMode()
-		svgLight.style.display = 'none'
-		svgDark.style.display = 'inline'
-		currentTheme = 'light'
-	}
-})
-
-
-// INFO
-const info = document.getElementById('info')
-
-document.getElementById('infoToggle').addEventListener('click', e => {
-	info.classList.toggle('active', true)
-})
-
-window.addEventListener('click', e => {
-	if (e.target == info && info.classList.contains('active')) {
-		info.classList.toggle('active', false)
-	}
+window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    toggleDarkMode(true)
+  } else {
+    toggleDarkMode(false)
+  }
 })
