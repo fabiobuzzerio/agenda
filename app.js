@@ -142,27 +142,31 @@ document.querySelector('input[name="moveCompletedTasks"]').addEventListener('cha
 })
 
 // DARK OR LIGHT MODE
-function toggleDarkMode(state) {
-	document.body.classList.toggle('dark-mode', state)
+function manageTheme(theme) {
+  if (theme == 'dark' || (theme == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.body.classList.toggle('dark-theme', true)
+  } else {
+    document.body.classList.toggle('dark-theme', false)
+  }
 }
 
 if ('theme' in localStorage) {
-  if (localStorage.theme == 'dark' || (localStorage.theme == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) toggleDarkMode(true)
+  manageTheme(localStorage.theme)
   document.querySelector(`input[name="theme"][value="${localStorage.theme}"]`).checked = true
 }
 
 document.querySelectorAll('input[name="theme"]').forEach(radio => {
   radio.addEventListener('change', () => {
-    if (radio.value == 'light' || (radio.value == 'auto' && !window.matchMedia('(prefers-color-scheme: dark)').matches)) toggleDarkMode(false)
-    if (radio.value == 'dark' || (radio.value == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) toggleDarkMode(true)
+    manageTheme(radio.value)
     localStorage.setItem('theme', radio.value)
   })
 })
 
-window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    toggleDarkMode(true)
-  } else {
-    toggleDarkMode(false)
-  }
+window.matchMedia('(prefers-color-scheme: dark)').addListener(() => {
+  manageTheme(localStorage.theme)
 })
+
+// SAVE LIST
+if ('saveList' in localStorage) {
+  document.querySelector(`input[name="saveList"]`).checked = true
+}

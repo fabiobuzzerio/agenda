@@ -167,7 +167,7 @@ footer div svg:hover {
 	--bg: 255, 255, 255;
 	--txt: 0, 0, 0;
 }
-.dark-mode {
+.dark-theme {
 	--bg: 32, 32, 32;
   --bg2: 64, 64, 64;
 	--txt: 255, 255, 255;
