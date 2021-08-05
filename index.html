@@ -11,12 +11,7 @@
 	<body>
 		<main>
 			<h1 contenteditable="true" placeholder="To do"></h1>
-			<div id="list">
-				<div class="task">
-					<input type="checkbox">
-					<span contenteditable="true" placeholder="Type something..." autofocus></span>
-				</div>
-			</div>
+			<div id="list"></div>
 		</main>
 		<footer>
       <div id="infoToggle">
@@ -48,17 +43,17 @@
           <input type="checkbox" name="moveCompletedTasks">Move completed tasks to the bottom
         </p>
         <p>
+          <input type="checkbox" name="saveList">Save list for next session
+        </p>
+        <p>
           Preferred theme:
           <input type="radio" name="theme" value="auto">Auto
           <input type="radio" name="theme" value="light">Light
           <input type="radio" name="theme" value="dark">Dark
         </p>
-        <p style="font-weight:bold">Beta</p>
+        <p style="font-weight:bold">Upcoming</p>
         <p>
-          <input type="checkbox" name="saveList">Save list for next time
-        </p>
-        <p>
-          <input type="checkbox" name="useEmojis">Use emojis as checkboxes
+          <input type="checkbox" name="useEmojis" disabled>Use emojis as checkboxes
         </p>
 			</div>
 		</div>

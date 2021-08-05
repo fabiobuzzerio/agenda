@@ -14,7 +14,7 @@ input[type="checkbox" i] {
   margin: 0 8px 0 0;
 }
 
-input[type="checkbox" i][disabled] {
+#info input[type="checkbox" i][disabled] {
   margin: 0;
 }
 
