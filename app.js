@@ -1,3 +1,6 @@
+// LIST
+list = document.getElementById('list')
+
 // LOCALSTORAGE OPTIONS & SETTINGS CHECKS
 let options = {
   'theme': 'auto',
@@ -8,26 +11,18 @@ let options = {
 if ('options' in localStorage) {
   options = JSON.parse(localStorage.options)
 } else {
-  localStorage.options = JSON.stringify({
-    'theme': options.theme,
-    'moveCompletedTasks': options.moveCompletedTasks,
-    'saveList': options.saveList
-  })
+  localStorageUpdater()
 }
 
 document.querySelector(`input[name="theme"][value="${options.theme}"]`).checked = true
 document.querySelector('input[name="moveCompletedTasks"]').checked = options.moveCompletedTasks
 document.querySelector('input[name="saveList"]').checked = options.saveList
 
-function updateLSOptions() {
+function localStorageUpdater() {
   localStorage.options = JSON.stringify(options)
 }
 
-// DOM ELEMENTS
-list = document.getElementById('list')
-
-
-// OPEN & CLOSE MODALS
+// MODALS
 var modals = [
   document.getElementById('info'),
   document.getElementById('settings')
@@ -47,16 +42,9 @@ modalsToggles.forEach((toggle, i) => {
   })
 })
 
-window.addEventListener('click', e => {
-  modals.forEach(modal => {
-    if (e.target == modal && modal.classList.contains('active')) manageModal(modal, false)
-  })
-})
-
-
 // DARK OR LIGHT MODE
-function manageTheme(a) {
-  document.body.classList.toggle('dark-theme', (a == 'dark' || (a == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)))
+function manageTheme(theme) {
+  document.body.classList.toggle('dark-theme', (theme == 'dark' || (theme == 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)))
 }
 
 manageTheme(options.theme)
@@ -65,14 +53,13 @@ document.querySelectorAll('input[name="theme"]').forEach(radio => {
   radio.addEventListener('change', () => {
     options.theme = radio.value
     manageTheme(options.theme)
-    updateLSOptions()
+    localStorageUpdater()
   })
 })
 
 window.matchMedia('(prefers-color-scheme: dark)').addListener(() => {
   manageTheme(options.theme)
 })
-
 
 // MOVE COMPLETED TASKS
 document.querySelector('input[name="moveCompletedTasks"]').addEventListener('change', e => {
@@ -87,37 +74,39 @@ document.querySelector('input[name="moveCompletedTasks"]').addEventListener('cha
     options.moveCompletedTasks = false
   }
   listSaver()
-  updateLSOptions()
+  localStorageUpdater()
 })
-
 
 // SAVE LIST
 function listSaver() {
   if (!options.saveList) return
   let tasksArray = []
   document.querySelectorAll('.task').forEach(task => {
-    tasksArray.push({'text': task.querySelector('span').innerHTML, 'completed': (task.classList.contains('completed') ? true : false)})
+    if (task.querySelector('span').innerHTML == '') return
+    tasksArray.push({'text': task.querySelector('span').innerHTML, 'completed': (task.classList.contains('completed'))})
   })
   localStorage.savedTasks = JSON.stringify(tasksArray)
 }
 
+setInterval(listSaver, 1500)
+
 document.querySelector('input[name="saveList"]').addEventListener('change', e => {
-  options.saveList = e.target.checked ? true : false
-  updateLSOptions()
+  options.saveList = e.target.checked
+  localStorageUpdater()
   if (!options.saveList) localStorage.savedTasks = []
 })
 
-
 // TO DO LIST
-function appendTask(node, position, completed, text) {
+function appendTask(node, position, completed, text, focus) {
   newTask = document.createElement('div')
   newTask.classList = (completed ? 'task completed' : 'task')
   newTask.innerHTML = `
-    <input type="checkbox">
+    <input type="checkbox" >
     <span contenteditable="${completed ? false : true}" placeholder="Type something...">${text}</span>
   `
   if (completed) newTask.querySelector('input').checked = true
   node.insertAdjacentElement(position, newTask)
+  if (focus) newTask.querySelector('span').focus()
 }
 
 function focusTask(task, position) {
@@ -130,56 +119,69 @@ function insertAfter(newNode, referenceNode) {
 }
 
 if (options.saveList) {
-  tasks = JSON.parse(localStorage.savedTasks)
-  tasks.forEach(task => {
-    appendTask(list, 'beforeend', task['completed'], task['text'],)
-  })
+  localStorageTasks = JSON.parse(localStorage.savedTasks)
+  if (localStorageTasks.length == 0) {
+    appendTask(list, 'afterbegin', false, '', true)
+  } else {
+    localStorageTasks.forEach(task => {
+      appendTask(list, 'beforeend', task['completed'], task['text'], false)
+    })
+  }
 } else {
-  appendTask(list, 'afterbegin', false, '')
-  list.lastChild.querySelector('span').focus()
+  appendTask(list, 'afterbegin', false, '', true)
 }
 
-// document.body.querySelector('#list > :not(.completed)').lastChild.querySelector('span').focus()
-// list.querySelectorAll(':not(.completed)')
-
+// EVENT LISTENERS
 window.addEventListener('keydown', e => {
-	if (e.key == 'Enter' || e.key == 'Tab') {
+  modals.forEach(modal => {
+    if (e.key == 'Escape' && modal.classList.contains('active')) manageModal(modal, false)
+  })
+  if (e.key == 'Enter' || e.key == 'Tab') {
 		e.preventDefault()
 	}
-  if (e.ctrlKey && e.key == 's') {
+  if (e.ctrlKey && e.key == 'S') {
     e.preventDefault()
 		listSaver()
 	}
 	if (e.target.parentNode.classList.contains('task')) {
 		span = e.target
     task = span.parentNode
-		list = task.parentNode
-		if (e.key == 'Backspace' && span.innerHTML == '' && task !== list.querySelector('div > div')) {
-			focusTask(task, 'prev')
-			list.removeChild(task)
-		}
-		if (e.key == 'Enter' && span.innerHTML !== '') {
-			appendTask(task, 'afterend', false, '')
-      focusTask(task, 'next')
-		}
-		if (e.key == 'ArrowUp') {
+    if (e.key == 'ArrowUp') {
 			focusTask(task, 'prev')
 		}
     if (e.key == 'ArrowDown') {
       focusTask(task, 'next')
     }
+    if (e.key == 'Backspace' && span.innerHTML == '' && task !== list.querySelector('.task:first-child')) {
+      focusTask(task, 'prev')
+			list.removeChild(task)
+		}
+    if (e.key == 'Enter' && span.innerHTML !== '') {
+			appendTask(task, 'afterend', false, '', true)
+		}
 		if (e.ctrlKey) {
       if (e.key == 'ArrowUp') list.insertBefore(task, task.previousSibling)
       if (e.key == 'ArrowDown') insertAfter(task, task.nextSibling)
       span.focus()
     }
-  }
+    if (e.shiftKey && e.key == 'Backspace') {
+      focusTask(task, 'prev')
+      list.removeChild(task)
+    }
+  } else {
+   if (e.key == 'Enter' && list.querySelector('.task:last-child span').innerHTML !== '') {
+     appendTask(list.querySelector('.task:last-child'), 'afterend', false, '', true)
+   }
+ }
 })
 
 window.addEventListener('click', e => {
+  modals.forEach(modal => {
+    if (e.target == modal && modal.classList.contains('active')) manageModal(modal, false)
+  })
 	tasks = list.querySelectorAll('.task')
 	lastTask = tasks[tasks.length-1]
-  if (!list.contains(e.target) && lastTask.querySelector('div > span').innerHTML !== '' && list.length !== 1) {
+  if (!list.contains(e.target) && lastTask.querySelector('div > span').innerHTML !== '' && list.length > 0) {
     listSaver()
   }
 	if (!lastTask.contains(e.target) && lastTask.querySelector('div > span').innerHTML == '' && lastTask !== tasks[0]) {
@@ -201,10 +203,3 @@ window.addEventListener('click', e => {
     }
 	}
 })
-
-
-// let os
-// if (navigator.appVersion.indexOf("Win") != -1) os = "Windows"
-// if (navigator.appVersion.indexOf("Mac") != -1) os = "MacOS"
-// if (navigator.appVersion.indexOf("X11") != -1) os = "UNIX"
-// if (navigator.appVersion.indexOf("Linux") != -1) os = "Linux"
